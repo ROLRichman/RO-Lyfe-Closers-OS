@@ -1,112 +1,294 @@
 let deal = {};
 
+function num(id){
+  return Number((document.getElementById(id).value || "0").replace(/,/g,"")) || 0;
+}
+function val(id){
+  return document.getElementById(id)?.value || "";
+}
+function money(n){
+  return "$" + (Number(n)||0).toLocaleString();
+}
+
 function openZillow(){
-window.open("https://www.zillow.com/homes/" + encodeURIComponent(address.value));
+  window.open("https://www.zillow.com/homes/" + encodeURIComponent(val("address")), "_blank");
 }
 function openRedfin(){
-window.open("https://www.redfin.com/search?q=" + encodeURIComponent(address.value));
+  window.open("https://www.redfin.com/search?q=" + encodeURIComponent(val("address")), "_blank");
 }
 function openUSDA(){
-window.open("https://eligibility.sc.egov.usda.gov/");
+  window.open("https://eligibility.sc.egov.usda.gov/", "_blank");
 }
 
 function analyzeDeal(){
-let arv = Number(arvInput());
-let price = Number(priceInput());
+  const arv = num("arv");
+  const price = num("price");
+  const repairs = num("repairs");
+  const fee = num("assignmentFee");
+  const overage = arv - price;
+  const profit = arv - price - repairs - fee;
+  const mao = (arv * .70) - repairs - fee;
+  const label = profit > 50000 ? "🔥 SOLID DEAL" : "⚠️ CHECK DEAL";
 
-let overage = arv - price;
-let profit = (arv * 0.7) - price;
+  deal = {arv, price, repairs, fee, overage, profit, mao};
 
-deal = {arv, price, overage, profit};
-
-result.innerHTML = `
-ARV: $${arv}<br>
-Price: $${price}<br>
-Overage: $${overage}<br>
-Profit: $${profit}
-`;
+  document.getElementById("result").innerHTML = `
+  <h3>💰 Deal Analysis</h3>
+  ARV: ${money(arv)}<br><br>
+  Purchase / Offer: ${money(price)}<br><br>
+  Rehab: ${money(repairs)}<br><br>
+  Assignment Fee: ${money(fee)}<br><br>
+  Overage: ${money(overage)}<br><br>
+  MAO: ${money(mao)}<br><br>
+  Estimated Profit Spread: ${money(profit)}<br><br>
+  <b>${label}</b>`;
 }
 
-function arvInput(){
-return document.getElementById("arv").value.replace(/,/g,"");
-}
-function priceInput(){
-return document.getElementById("price").value.replace(/,/g,"");
+function resetDeal(){
+  location.reload();
 }
 
 function run3Tier(){
-let arv = Number(document.getElementById("tierArv").value);
+  const arv = num("tierArv");
+  const cash = arv * .50;
+  const sellerCarry = arv * .65;
+  const sellerFinance = arv * .75;
 
-tierOut.innerHTML = `
-Cash: $${(arv*.5).toFixed(0)}<br>
-Carry: $${(arv*.65).toFixed(0)}<br>
-Finance: $${(arv*.75).toFixed(0)}
-`;
+  const down = sellerCarry * .05;
+  const carryLoan = sellerCarry - down;
+  const carryPay = payment(carryLoan, .05, 30);
+  const carryBalloon = balance(carryLoan, .05, 30, 48);
+
+  const financePay = payment(sellerFinance, .06, 30);
+  const financeBalloon = balance(sellerFinance, .06, 30, 60);
+
+  document.getElementById("tierOut").innerHTML = `
+  <h4>All Cash</h4>
+  Cash Offer: ${money(cash)}
+
+  <h4>Seller Carry</h4>
+  Purchase Price: ${money(sellerCarry)}<br>
+  Buyer Down Payment: ${money(down)}<br>
+  Seller Carry Balance: ${money(carryLoan)}<br>
+  Monthly Payment: ${money(carryPay)}<br>
+  4-Year Balloon: ${money(carryBalloon)}<br><br>
+  Buyer to pay ${money(down)} down, Seller to Carry 1st mortgage in the amount of ${money(carryLoan)} at 5.00% fully amortizing for 30 years, with monthly payments of ${money(carryPay)} and a 4 year balloon payment of ${money(carryBalloon)}.
+
+  <h4>Seller Financing</h4>
+  Purchase Price: ${money(sellerFinance)}<br>
+  Buyer Down Payment: $0<br>
+  Seller Financing Balance: ${money(sellerFinance)}<br>
+  Monthly Payment: ${money(financePay)}<br>
+  5-Year Balloon: ${money(financeBalloon)}<br><br>
+  Buyer to pay $0 down, Seller to Carry 1st mortgage in the amount of ${money(sellerFinance)} at 6.00% fully amortizing for 30 years, with monthly payments of ${money(financePay)} and a 5 year balloon payment of ${money(financeBalloon)}.`;
 }
 
-function calcRepairs(){
-let total =
-(+r1.value||0)+(+r2.value||0)+(+r3.value||0)+(+r4.value||0);
-repairOut.innerHTML = "Total: $" + total;
+function payment(principal, annualRate, years){
+  const r = annualRate / 12;
+  const n = years * 12;
+  return principal * r / (1 - Math.pow(1 + r, -n));
+}
+
+function balance(principal, annualRate, years, paidMonths){
+  const pmt = payment(principal, annualRate, years);
+  const r = annualRate / 12;
+  return principal * Math.pow(1+r, paidMonths) - pmt * ((Math.pow(1+r, paidMonths)-1)/r);
+}
+
+function selectedRepairs(){
+  const items = ["roof","electrical","plumbing","hvac","kitchen","bathroom","flooring","windows","foundation","garage"];
+  return items.filter(id => document.getElementById(id).checked).join(", ") || "To be confirmed";
+}
+
+function buildDealText(){
+  return `RO’Lyfe Deal Package
+
+Property: ${val("address")}
+ARV: ${money(deal.arv)}
+Offer / Purchase: ${money(deal.price)}
+Rehab: ${money(deal.repairs)}
+Assignment Fee: ${money(deal.fee)}
+MAO: ${money(deal.mao)}
+Estimated Profit: ${money(deal.profit)}
+
+Exit Strategy: ${val("exitStrategy")}
+Loan Type: ${val("loanType")}
+
+Prepared By:
+Richardson L.
+Root Of Lyfe Holdings LLC
+Private Capital Broker
+richman@rootoflyfe.com
+267-808-5844`;
 }
 
 function copyDeal(){
-let text = buildText();
-navigator.clipboard.writeText(text);
-alert("Copied");
+  navigator.clipboard.writeText(buildDealText());
+  alert("Deal copied.");
 }
 
 function emailDeal(){
-let text = encodeURIComponent(buildText());
-window.open(`mailto:?subject=Deal&body=${text}`);
+  const body = encodeURIComponent(buildDealText());
+  window.open(`mailto:?subject=RO’Lyfe Deal Package&body=${body}`);
 }
 
 function textDeal(){
-let text = encodeURIComponent(buildText());
-window.open(`sms:?body=${text}`);
-}
-
-function buildText(){
-return `
-RO’Lyfe Deal
-
-${address.value}
-
-ARV: ${arv.value}
-Price: ${price.value}
-
-Richardson L.
-`;
+  const body = encodeURIComponent(buildDealText());
+  window.open(`sms:?body=${body}`);
 }
 
 function oneClickClose(){
-copyDeal();
-emailDeal();
-textDeal();
-alert("Deal Sent");
+  generatePDF();
+  copyDeal();
+  emailDeal();
+  alert("Deal package generated, copied, and email opened.");
+}
+
+function generatePDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y = 10;
+
+  function line(text, gap=6){
+    const split = doc.splitTextToSize(String(text), 185);
+    doc.text(split, 10, y);
+    y += split.length * gap;
+    if(y > 275){ doc.addPage(); y = 10; }
+  }
+
+  doc.setFontSize(14);
+  line("RO’Lyfe Holdings LLC");
+  doc.setFontSize(11);
+  line("Deal Structure & Funding Preview", 8);
+
+  line("Prepared By: Richardson L.");
+  line("Root Of Lyfe Holdings LLC | Private Capital Broker");
+  line("richman@rootoflyfe.com | 267-808-5844", 8);
+
+  line("PROPERTY");
+  line("Address: " + val("address"));
+  line("Property Type: " + val("propertyType"));
+  line("Beds / Baths: " + val("bedsBaths"));
+  line("Sq Ft: " + val("sqft"));
+  line("Garage / Yard: " + val("garageYard"));
+  line("Agent / Source: " + val("agentName"), 8);
+
+  line("BUYER / CONTRACTOR");
+  line("Name: " + val("buyerName"));
+  line("Company: " + val("buyerCompany"));
+  line("Phone: " + val("buyerPhone"));
+  line("Email: " + val("buyerEmail"), 8);
+
+  line("PROPERTY NUMBERS");
+  line("Estimated ARV: " + money(deal.arv));
+  line("Asking / Offer Price: " + money(deal.price));
+  line("Estimated Rehab: " + money(deal.repairs));
+  line("Assignment Fee: " + money(deal.fee));
+  line("Estimated Profit Spread: " + money(deal.profit));
+  line("MAO: " + money(deal.mao), 8);
+
+  line("THREE-TIER OFFER STRUCTURE");
+  line(document.getElementById("tierOut").innerText || "Run 3 Tier Engine before generating PDF.", 5);
+
+  line("PRIVATE / HARD MONEY LOAN PREVIEW");
+  line("Loan Type: " + val("loanType"));
+  line("Estimated Loan Amount: " + val("loanAmount"));
+  line("Estimated Interest Rate: " + val("interestRate") + "%");
+  line("Estimated Points: " + val("points"));
+  line("Estimated Cash to Close: " + val("cashToClose"), 8);
+
+  line("REHAB / COGO SUMMARY");
+  line("Major Repair Items: " + selectedRepairs());
+  line("Estimated Rehab Total: " + money(deal.repairs));
+  line("Contractor Notes: " + val("contractorNotes"), 8);
+
+  line("EXIT STRATEGY");
+  line("Primary Exit: " + val("exitStrategy"));
+  line("Backup Exit: Assignment, Double Close, Lender-Funded Flip, or Walk Away During Inspection", 8);
+
+  line("RO’LYFE EXECUTION PLAN");
+  line("1. Request full property address and access details");
+  line("2. Schedule walkthrough with contractor present");
+  line("3. Confirm rehab scope and max buy price");
+  line("4. Submit offer under Richardson L. and/or Assigns");
+  line("5. Lock contract with inspection period and assignability");
+  line("6. Execute through assignment or double close");
+  line("7. Send full deal package to lender");
+  line("8. Close and collect profit", 8);
+
+  line("INVESTMENT RULES");
+  line("Do NOT lock deals without contractor validation.");
+  line("Do NOT rely on estimated ARV without comps.");
+  line("Do NOT overpay based on emotion.");
+  line("ALWAYS maintain assignability.");
+  line("ALWAYS confirm title, access, liens, taxes, and seller authority.", 8);
+
+  line("DISCLOSURE");
+  line("This document is for internal deal review, buyer review, and funding discussion purposes only. It does not represent a loan commitment, guarantee of financing, appraisal, legal advice, or financial advice. All final terms are subject to contract, underwriting, title review, inspection, lender approval, and buyer due diligence.", 6);
+
+  line("Prepared By: Richardson L. | Root Of Lyfe Holdings LLC");
+  line("Signature: Richardson L.");
+
+  try{
+    const canvas = document.getElementById("sig");
+    const img = canvas.toDataURL("image/png");
+    doc.addImage(img, "PNG", 10, y + 5, 80, 30);
+  }catch(e){}
+
+  doc.save("ROlyfe_Deal_Package.pdf");
+}
+
+function initSignature(){
+  const canvas = document.getElementById("sig");
+  const ctx = canvas.getContext("2d");
+  canvas.width = canvas.offsetWidth;
+  canvas.height = 180;
+
+  ctx.lineWidth = 3;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#111";
+
+  let drawing = false;
+
+  function pos(e){
+    const rect = canvas.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return {x:t.clientX-rect.left, y:t.clientY-rect.top};
+  }
+
+  function start(e){
+    e.preventDefault();
+    drawing = true;
+    const p = pos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x,p.y);
+  }
+
+  function move(e){
+    e.preventDefault();
+    if(!drawing) return;
+    const p = pos(e);
+    ctx.lineTo(p.x,p.y);
+    ctx.stroke();
+  }
+
+  function end(e){
+    e.preventDefault();
+    drawing = false;
+  }
+
+  canvas.addEventListener("mousedown", start);
+  canvas.addEventListener("mousemove", move);
+  canvas.addEventListener("mouseup", end);
+  canvas.addEventListener("mouseleave", end);
+  canvas.addEventListener("touchstart", start, {passive:false});
+  canvas.addEventListener("touchmove", move, {passive:false});
+  canvas.addEventListener("touchend", end, {passive:false});
 }
 
 function clearSig(){
-let c = sig.getContext("2d");
-c.clearRect(0,0,sig.width,sig.height);
+  const canvas = document.getElementById("sig");
+  canvas.getContext("2d").clearRect(0,0,canvas.width,canvas.height);
 }
 
-window.onload = function(){
-let canvas = document.getElementById("sig");
-let ctx = canvas.getContext("2d");
-
-canvas.width = canvas.offsetWidth;
-canvas.height = 150;
-
-let draw=false;
-
-canvas.onmousedown=()=>draw=true;
-canvas.onmouseup=()=>draw=false;
-
-canvas.onmousemove=(e)=>{
-if(!draw) return;
-let r=canvas.getBoundingClientRect();
-ctx.lineTo(e.clientX-r.left,e.clientY-r.top);
-ctx.stroke();
-};
-};
+window.onload = initSignature;
