@@ -2,24 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RO'Lyfe Deal OS</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>RO’Lyfe Closers OS</title>
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-
 <body>
-<div class="app">
 
-<h1>🏡 RO’Lyfe Deal OS</h1>
+<div class="app">
+<h1>🏡 RO’Lyfe Closers OS</h1>
 <p class="sub">Analyze → Lock → Sign → Send → Close</p>
 
-<!-- VIDEO TRAINING -->
-<div class="card">
-<iframe src="https://www.youtube.com/embed/iAlUx755K2s"></iframe>
-</div>
-
-<!-- DEAL INPUT -->
 <div class="card">
 <input id="address" placeholder="Property Address">
 <div class="row">
@@ -27,14 +20,112 @@
 <button onclick="openRedfin()">Redfin</button>
 <button onclick="openUSDA()">USDA</button>
 </div>
-
 <input id="arv" placeholder="ARV">
-<input id="price" placeholder="Purchase Price">
+<input id="price" placeholder="Purchase Price / Offer">
+<input id="repairs" placeholder="Estimated Rehab">
+<input id="assignmentFee" placeholder="Assignment Fee">
 <input type="date" id="closing">
-
 <button onclick="analyzeDeal()">Analyze Deal</button>
 <button onclick="resetDeal()">Reset</button>
 </div>
+
+<div class="card" id="result">
+<h3>💰 Deal Analysis</h3>
+Ready.
+</div>
+
+<div class="card">
+<h3>📊 3 Tier Engine</h3>
+<input id="tierArv" placeholder="Enter ARV">
+<button onclick="run3Tier()">Run 3 Tier</button>
+<div id="tierOut"></div>
+</div>
+
+<div class="card">
+<h3>📄 Deal Structure Questions</h3>
+
+<details>
+<summary>🏠 Property + Buyer Info</summary>
+<input id="propertyType" placeholder="Property Type">
+<input id="bedsBaths" placeholder="Beds / Baths">
+<input id="sqft" placeholder="Sq Ft">
+<input id="garageYard" placeholder="Garage / Yard">
+<input id="agentName" value="Dr. Tanya Glenn-Butler" placeholder="Agent / Source">
+<input id="buyerName" placeholder="Buyer / Contractor Name">
+<input id="buyerCompany" placeholder="Buyer Company">
+<input id="buyerPhone" placeholder="Buyer Phone">
+<input id="buyerEmail" placeholder="Buyer Email">
+</details>
+
+<details>
+<summary>🏦 Loan + Exit Strategy</summary>
+<select id="loanType">
+<option>Purchase & Rehab</option>
+<option>Fix & Flip</option>
+<option>Bridge Loan</option>
+<option>DSCR Rental Loan</option>
+<option>Refinance</option>
+<option>Cash-Out Refinance</option>
+<option>Private Capital</option>
+<option>Seller Carry / Creative Financing</option>
+</select>
+<input id="loanAmount" placeholder="Estimated Loan Amount">
+<input id="interestRate" placeholder="Estimated Interest Rate %">
+<input id="points" placeholder="Estimated Points">
+<input id="cashToClose" placeholder="Estimated Cash to Close">
+<select id="exitStrategy">
+<option>Assignment</option>
+<option>Double Close</option>
+<option>Fix & Flip</option>
+<option>Buy & Hold</option>
+<option>Refinance</option>
+<option>DSCR Rental</option>
+<option>Seller Finance Exit</option>
+</select>
+</details>
+
+<details>
+<summary>🏗️ Rehab / COGO Summary</summary>
+<label><input type="checkbox" id="roof"> Roof</label>
+<label><input type="checkbox" id="electrical"> Electrical</label>
+<label><input type="checkbox" id="plumbing"> Plumbing</label>
+<label><input type="checkbox" id="hvac"> HVAC</label>
+<label><input type="checkbox" id="kitchen"> Kitchen</label>
+<label><input type="checkbox" id="bathroom"> Bathroom</label>
+<label><input type="checkbox" id="flooring"> Flooring</label>
+<label><input type="checkbox" id="windows"> Windows</label>
+<label><input type="checkbox" id="foundation"> Foundation</label>
+<label><input type="checkbox" id="garage"> Garage</label>
+<textarea id="contractorNotes" placeholder="Contractor Notes"></textarea>
+</details>
+</div>
+
+<div class="card">
+<h3>✍️ Signature</h3>
+<p class="small">Sign inside the white box.</p>
+<canvas id="sig"></canvas>
+<button onclick="clearSig()">Clear</button>
+</div>
+
+<div class="card actions">
+<h3>🚀 Close Mode</h3>
+<button onclick="generatePDF()">🧾 Generate PDF</button>
+<button onclick="copyDeal()">📋 Copy Deal</button>
+<button onclick="emailDeal()">📧 Email Deal</button>
+<button onclick="textDeal()">📲 Text Deal</button>
+<button onclick="oneClickClose()">🔥 ONE CLICK CLOSE</button>
+</div>
+
+<div class="card">
+<h3>🧾 Intake Form</h3>
+<iframe src="https://form.jotform.com/252063354378055"></iframe>
+</div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html></div>
 
 <!-- RESULT -->
 <div class="card" id="result">Ready...</div>
