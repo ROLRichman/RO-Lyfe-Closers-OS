@@ -169,7 +169,6 @@ function generatePDF(){
   function section(title){
     pageCheck(18);
     doc.setFontSize(13);
-    doc.setTextColor(0,0,0);
     doc.text(title, 10, y);
     y += 5;
     doc.setDrawColor(180);
@@ -180,7 +179,6 @@ function generatePDF(){
   function line(text, gap=5){
     pageCheck(12);
     doc.setFontSize(10);
-    doc.setTextColor(0,0,0);
     const split = doc.splitTextToSize(String(text || ""), 185);
     doc.text(split, 10, y);
     y += split.length * gap;
@@ -221,8 +219,7 @@ function generatePDF(){
   line("MAO: " + money(deal.mao), 8);
 
   section("THREE-TIER OFFER STRUCTURE");
-  const tierText = document.getElementById("tierOut").innerText || "Run 3 Tier Engine before generating PDF.";
-  line(tierText, 5);
+  line(document.getElementById("tierOut")?.innerText || "Run 3 Tier Engine before generating PDF.", 5);
 
   section("PRIVATE / HARD MONEY LOAN PREVIEW");
   line("Loan Type: " + val("loanType"));
@@ -341,12 +338,16 @@ function clearSig(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 }
 
-function openJamalAI(){
-  window.open(
-    "https://agent.jotform.com/019bdd1fe57172838101dccf3612b1e9e787?embedMode=popup&parentURL=" + encodeURIComponent(window.location.href),
-    "JamalAI",
-    "scrollbars=yes,toolbar=no,width=700,height=500"
-  );
+/* Jamal AI inside machine */
+function openJamalPanel(){
+  const panel = document.getElementById("jamalPanel");
+  if(panel) panel.style.display = "block";
+  closeJamalPopup();
+}
+
+function closeJamalPanel(){
+  const panel = document.getElementById("jamalPanel");
+  if(panel) panel.style.display = "none";
 }
 
 function closeJamalPopup(){
