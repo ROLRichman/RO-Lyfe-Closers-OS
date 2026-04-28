@@ -110,8 +110,15 @@ touch-action:none;
 display:block;
 }
 
-iframe{
+.iframe-wrap{
 height:520px;
+overflow:hidden;
+border-radius:12px;
+background:#fff;
+}
+
+.iframe-wrap iframe{
+height:100%;
 border:none;
 background:#fff;
 }
