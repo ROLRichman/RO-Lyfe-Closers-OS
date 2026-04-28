@@ -341,4 +341,19 @@ function clearSig(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 }
 
+function openJamalAI(){
+  window.open(
+    "https://agent.jotform.com/019bdd1fe57172838101dccf3612b1e9e787?embedMode=popup&parentURL=" + encodeURIComponent(window.location.href),
+    "JamalAI",
+    "scrollbars=yes,toolbar=no,width=700,height=500"
+  );
+}
+
+function closeJamalPopup(){
+  const popup = document.getElementById("jamalPopup");
+  if(popup) popup.style.display = "none";
+}
+
+setTimeout(closeJamalPopup, 5000);
+
 window.onload = initSignature;
