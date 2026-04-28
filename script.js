@@ -3,19 +3,23 @@ let deal = {};
 function num(id){
   return Number((document.getElementById(id).value || "0").replace(/,/g,"")) || 0;
 }
+
 function val(id){
   return document.getElementById(id)?.value || "";
 }
+
 function money(n){
-  return "$" + (Number(n)||0).toLocaleString();
+  return "$" + (Number(n)||0).toLocaleString(undefined,{maximumFractionDigits:0});
 }
 
 function openZillow(){
   window.open("https://www.zillow.com/homes/" + encodeURIComponent(val("address")), "_blank");
 }
+
 function openRedfin(){
   window.open("https://www.redfin.com/search?q=" + encodeURIComponent(val("address")), "_blank");
 }
+
 function openUSDA(){
   window.open("https://eligibility.sc.egov.usda.gov/", "_blank");
 }
@@ -145,6 +149,8 @@ function oneClickClose(){
 }
 
 function generatePDF(){
+  if(!deal.arv){ analyzeDeal(); }
+
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   let y = 10;
@@ -232,6 +238,7 @@ function generatePDF(){
   try{
     const canvas = document.getElementById("sig");
     const img = canvas.toDataURL("image/png");
+    if(y > 235){ doc.addPage(); y = 10; }
     doc.addImage(img, "PNG", 10, y + 5, 80, 30);
   }catch(e){}
 
@@ -241,12 +248,17 @@ function generatePDF(){
 function initSignature(){
   const canvas = document.getElementById("sig");
   const ctx = canvas.getContext("2d");
-  canvas.width = canvas.offsetWidth;
-  canvas.height = 180;
 
-  ctx.lineWidth = 3;
-  ctx.lineCap = "round";
-  ctx.strokeStyle = "#111";
+  function resizeCanvas(){
+    const data = canvas.toDataURL();
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 180;
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#111";
+  }
+
+  resizeCanvas();
 
   let drawing = false;
 
