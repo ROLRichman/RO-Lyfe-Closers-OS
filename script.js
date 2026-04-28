@@ -1,7 +1,7 @@
 let deal = {};
 
 function num(id){
-  return Number((document.getElementById(id).value || "0").replace(/,/g,"")) || 0;
+  return Number((document.getElementById(id)?.value || "0").replace(/,/g,"")) || 0;
 }
 
 function val(id){
@@ -37,19 +37,32 @@ function analyzeDeal(){
   deal = {arv, price, repairs, fee, overage, profit, mao};
 
   document.getElementById("result").innerHTML = `
-  <h3>💰 Deal Analysis</h3>
-  ARV: ${money(arv)}<br><br>
-  Purchase / Offer: ${money(price)}<br><br>
-  Rehab: ${money(repairs)}<br><br>
-  Assignment Fee: ${money(fee)}<br><br>
-  Overage: ${money(overage)}<br><br>
-  MAO: ${money(mao)}<br><br>
-  Estimated Profit Spread: ${money(profit)}<br><br>
-  <b>${label}</b>`;
+    <h3>💰 Deal Analysis</h3>
+    ARV: ${money(arv)}<br><br>
+    Purchase / Offer: ${money(price)}<br><br>
+    Rehab: ${money(repairs)}<br><br>
+    Assignment Fee: ${money(fee)}<br><br>
+    Overage: ${money(overage)}<br><br>
+    MAO: ${money(mao)}<br><br>
+    Estimated Profit Spread: ${money(profit)}<br><br>
+    <b>${label}</b>
+  `;
 }
 
 function resetDeal(){
   location.reload();
+}
+
+function payment(principal, annualRate, years){
+  const r = annualRate / 12;
+  const n = years * 12;
+  return principal * r / (1 - Math.pow(1 + r, -n));
+}
+
+function balance(principal, annualRate, years, paidMonths){
+  const pmt = payment(principal, annualRate, years);
+  const r = annualRate / 12;
+  return principal * Math.pow(1+r, paidMonths) - pmt * ((Math.pow(1+r, paidMonths)-1)/r);
 }
 
 function run3Tier(){
@@ -67,44 +80,35 @@ function run3Tier(){
   const financeBalloon = balance(sellerFinance, .06, 30, 60);
 
   document.getElementById("tierOut").innerHTML = `
-  <h4>All Cash</h4>
-  Cash Offer: ${money(cash)}
+    <h4>All Cash</h4>
+    Cash Offer: ${money(cash)}
 
-  <h4>Seller Carry</h4>
-  Purchase Price: ${money(sellerCarry)}<br>
-  Buyer Down Payment: ${money(down)}<br>
-  Seller Carry Balance: ${money(carryLoan)}<br>
-  Monthly Payment: ${money(carryPay)}<br>
-  4-Year Balloon: ${money(carryBalloon)}<br><br>
-  Buyer to pay ${money(down)} down, Seller to Carry 1st mortgage in the amount of ${money(carryLoan)} at 5.00% fully amortizing for 30 years, with monthly payments of ${money(carryPay)} and a 4 year balloon payment of ${money(carryBalloon)}.
+    <h4>Seller Carry</h4>
+    Purchase Price: ${money(sellerCarry)}<br>
+    Buyer Down Payment: ${money(down)}<br>
+    Seller Carry Balance: ${money(carryLoan)}<br>
+    Monthly Payment: ${money(carryPay)}<br>
+    4-Year Balloon: ${money(carryBalloon)}<br><br>
+    Buyer to pay ${money(down)} down, Seller to Carry 1st mortgage in the amount of ${money(carryLoan)} at 5.00% fully amortizing for 30 years, with monthly payments of ${money(carryPay)} and a 4 year balloon payment of ${money(carryBalloon)}.
 
-  <h4>Seller Financing</h4>
-  Purchase Price: ${money(sellerFinance)}<br>
-  Buyer Down Payment: $0<br>
-  Seller Financing Balance: ${money(sellerFinance)}<br>
-  Monthly Payment: ${money(financePay)}<br>
-  5-Year Balloon: ${money(financeBalloon)}<br><br>
-  Buyer to pay $0 down, Seller to Carry 1st mortgage in the amount of ${money(sellerFinance)} at 6.00% fully amortizing for 30 years, with monthly payments of ${money(financePay)} and a 5 year balloon payment of ${money(financeBalloon)}.`;
-}
-
-function payment(principal, annualRate, years){
-  const r = annualRate / 12;
-  const n = years * 12;
-  return principal * r / (1 - Math.pow(1 + r, -n));
-}
-
-function balance(principal, annualRate, years, paidMonths){
-  const pmt = payment(principal, annualRate, years);
-  const r = annualRate / 12;
-  return principal * Math.pow(1+r, paidMonths) - pmt * ((Math.pow(1+r, paidMonths)-1)/r);
+    <h4>Seller Financing</h4>
+    Purchase Price: ${money(sellerFinance)}<br>
+    Buyer Down Payment: $0<br>
+    Seller Financing Balance: ${money(sellerFinance)}<br>
+    Monthly Payment: ${money(financePay)}<br>
+    5-Year Balloon: ${money(financeBalloon)}<br><br>
+    Buyer to pay $0 down, Seller to Carry 1st mortgage in the amount of ${money(sellerFinance)} at 6.00% fully amortizing for 30 years, with monthly payments of ${money(financePay)} and a 5 year balloon payment of ${money(financeBalloon)}.
+  `;
 }
 
 function selectedRepairs(){
   const items = ["roof","electrical","plumbing","hvac","kitchen","bathroom","flooring","windows","foundation","garage"];
-  return items.filter(id => document.getElementById(id).checked).join(", ") || "To be confirmed";
+  return items.filter(id => document.getElementById(id)?.checked).join(", ") || "To be confirmed";
 }
 
 function buildDealText(){
+  if(!deal.arv){ analyzeDeal(); }
+
   return `RO’Lyfe Deal Package
 
 Property: ${val("address")}
@@ -153,25 +157,48 @@ function generatePDF(){
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  let y = 10;
+  let y = 15;
 
-  function line(text, gap=6){
-    const split = doc.splitTextToSize(String(text), 185);
-    doc.text(split, 10, y);
-    y += split.length * gap;
-    if(y > 275){ doc.addPage(); y = 10; }
+  function pageCheck(space=10){
+    if(y + space > 275){
+      doc.addPage();
+      y = 15;
+    }
   }
 
-  doc.setFontSize(14);
-  line("RO’Lyfe Holdings LLC");
+  function section(title){
+    pageCheck(18);
+    doc.setFontSize(13);
+    doc.setTextColor(0,0,0);
+    doc.text(title, 10, y);
+    y += 5;
+    doc.setDrawColor(180);
+    doc.line(10, y, 200, y);
+    y += 7;
+  }
+
+  function line(text, gap=5){
+    pageCheck(12);
+    doc.setFontSize(10);
+    doc.setTextColor(0,0,0);
+    const split = doc.splitTextToSize(String(text || ""), 185);
+    doc.text(split, 10, y);
+    y += split.length * gap;
+  }
+
+  doc.setFontSize(16);
+  doc.text("RO’Lyfe Holdings LLC", 10, y);
+  y += 8;
+
   doc.setFontSize(11);
-  line("Deal Structure & Funding Preview", 8);
+  doc.text("Deal Structure & Funding Preview", 10, y);
+  y += 10;
 
   line("Prepared By: Richardson L.");
   line("Root Of Lyfe Holdings LLC | Private Capital Broker");
   line("richman@rootoflyfe.com | 267-808-5844", 8);
 
-  line("PROPERTY");
+  section("PROPERTY");
   line("Address: " + val("address"));
   line("Property Type: " + val("propertyType"));
   line("Beds / Baths: " + val("bedsBaths"));
@@ -179,13 +206,13 @@ function generatePDF(){
   line("Garage / Yard: " + val("garageYard"));
   line("Agent / Source: " + val("agentName"), 8);
 
-  line("BUYER / CONTRACTOR");
+  section("BUYER / CONTRACTOR");
   line("Name: " + val("buyerName"));
   line("Company: " + val("buyerCompany"));
   line("Phone: " + val("buyerPhone"));
   line("Email: " + val("buyerEmail"), 8);
 
-  line("PROPERTY NUMBERS");
+  section("PROPERTY NUMBERS");
   line("Estimated ARV: " + money(deal.arv));
   line("Asking / Offer Price: " + money(deal.price));
   line("Estimated Rehab: " + money(deal.repairs));
@@ -193,26 +220,34 @@ function generatePDF(){
   line("Estimated Profit Spread: " + money(deal.profit));
   line("MAO: " + money(deal.mao), 8);
 
-  line("THREE-TIER OFFER STRUCTURE");
-  line(document.getElementById("tierOut").innerText || "Run 3 Tier Engine before generating PDF.", 5);
+  section("THREE-TIER OFFER STRUCTURE");
+  const tierText = document.getElementById("tierOut").innerText || "Run 3 Tier Engine before generating PDF.";
+  line(tierText, 5);
 
-  line("PRIVATE / HARD MONEY LOAN PREVIEW");
+  section("PRIVATE / HARD MONEY LOAN PREVIEW");
   line("Loan Type: " + val("loanType"));
   line("Estimated Loan Amount: " + val("loanAmount"));
   line("Estimated Interest Rate: " + val("interestRate") + "%");
   line("Estimated Points: " + val("points"));
   line("Estimated Cash to Close: " + val("cashToClose"), 8);
 
-  line("REHAB / COGO SUMMARY");
+  section("REHAB / COGO SUMMARY");
   line("Major Repair Items: " + selectedRepairs());
   line("Estimated Rehab Total: " + money(deal.repairs));
   line("Contractor Notes: " + val("contractorNotes"), 8);
 
-  line("EXIT STRATEGY");
+  section("EXIT STRATEGY");
   line("Primary Exit: " + val("exitStrategy"));
   line("Backup Exit: Assignment, Double Close, Lender-Funded Flip, or Walk Away During Inspection", 8);
 
-  line("RO’LYFE EXECUTION PLAN");
+  section("PROTECTED CLAUSES");
+  line("Buyer may assign this agreement to Richardson L. and/or Assigns, partners, affiliates, buyer entities, contractors, lenders, or funding partners.");
+  line("Property is evaluated AS-IS, WHERE-IS, subject to inspection, contractor validation, title review, and final due diligence.");
+  line("Buyer reserves the right to market, package, review, and share the deal with contractors, buyers, lenders, affiliates, and capital partners for transaction execution.");
+  line("Seller and parties agree not to circumvent buyer, buyer’s partners, funding partners, contractors, assignees, or affiliates introduced through this transaction.");
+  line("Final terms are subject to inspection period, funding review, title, liens, taxes, insurance, appraisal, and lender underwriting.", 8);
+
+  section("RO’LYFE EXECUTION PLAN");
   line("1. Request full property address and access details");
   line("2. Schedule walkthrough with contractor present");
   line("3. Confirm rehab scope and max buy price");
@@ -222,25 +257,31 @@ function generatePDF(){
   line("7. Send full deal package to lender");
   line("8. Close and collect profit", 8);
 
-  line("INVESTMENT RULES");
+  section("INVESTMENT RULES");
   line("Do NOT lock deals without contractor validation.");
   line("Do NOT rely on estimated ARV without comps.");
   line("Do NOT overpay based on emotion.");
   line("ALWAYS maintain assignability.");
   line("ALWAYS confirm title, access, liens, taxes, and seller authority.", 8);
 
-  line("DISCLOSURE");
+  section("DISCLOSURE");
   line("This document is for internal deal review, buyer review, and funding discussion purposes only. It does not represent a loan commitment, guarantee of financing, appraisal, legal advice, or financial advice. All final terms are subject to contract, underwriting, title review, inspection, lender approval, and buyer due diligence.", 6);
 
+  section("SIGNATURES");
   line("Prepared By: Richardson L. | Root Of Lyfe Holdings LLC");
-  line("Signature: Richardson L.");
+  line("Broker / Buyer Signature: Richardson L.");
 
   try{
     const canvas = document.getElementById("sig");
     const img = canvas.toDataURL("image/png");
-    if(y > 235){ doc.addPage(); y = 10; }
+    pageCheck(50);
     doc.addImage(img, "PNG", 10, y + 5, 80, 30);
+    y += 42;
   }catch(e){}
+
+  line("Seller Signature: ______________________________");
+  line("Buyer / Contractor Signature: ______________________________");
+  line("Date: ______________________________");
 
   doc.save("ROlyfe_Deal_Package.pdf");
 }
@@ -249,16 +290,12 @@ function initSignature(){
   const canvas = document.getElementById("sig");
   const ctx = canvas.getContext("2d");
 
-  function resizeCanvas(){
-    const data = canvas.toDataURL();
-    canvas.width = canvas.offsetWidth;
-    canvas.height = 180;
-    ctx.lineWidth = 3;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "#111";
-  }
+  canvas.width = canvas.offsetWidth;
+  canvas.height = 180;
 
-  resizeCanvas();
+  ctx.lineWidth = 3;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#111";
 
   let drawing = false;
 
@@ -300,7 +337,8 @@ function initSignature(){
 
 function clearSig(){
   const canvas = document.getElementById("sig");
-  canvas.getContext("2d").clearRect(0,0,canvas.width,canvas.height);
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 }
 
 window.onload = initSignature;
