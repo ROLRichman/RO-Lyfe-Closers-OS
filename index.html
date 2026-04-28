@@ -146,6 +146,33 @@ Ready.
     </div>
   </details>
 </div>
+
+<div id="jamalPopup" class="jamal-popup">
+  <button class="jamal-close" onclick="closeJamalPopup()">×</button>
+  <h3>🤖 Jamal AI Decision Guide</h3>
+  <p>Need help deciding if this deal is a go, no-go, or negotiate?</p>
+  <button onclick="openJamalPanel()">Open Jamal AI</button>
+</div>
+
+<div id="jamalPanel" class="jamal-panel">
+  <div class="jamal-panel-head">
+    <strong>🤖 Jamal AI Decision Guide</strong>
+    <button onclick="closeJamalPanel()">×</button>
+  </div>
+
+  <iframe
+    id="JotFormIFrame-019bdd1fe57172838101dccf3612b1e9e787"
+    title="Jamal: Decision Guide"
+    allowtransparency="true"
+    allow="geolocation; microphone; camera; fullscreen"
+    src="https://agent.jotform.com/019bdd1fe57172838101dccf3612b1e9e787?embedMode=iframe&autofocus=0&background=1&shadow=1"
+    frameborder="0"
+    scrolling="no">
+  </iframe>
+</div>
+
+<button class="jamal-float" onclick="openJamalPanel()">🤖</button>
+
   
 <div class="card">
 <h3>🧾 Intake Form</h3>
@@ -155,15 +182,6 @@ Ready.
 </div>
 
 </div>
-
-<div id="jamalPopup" class="jamal-popup">
-  <button class="jamal-close" onclick="closeJamalPopup()">×</button>
-  <h3>🤖 Jamal AI Decision Guide</h3>
-  <p>Need help deciding if this deal is a go, no-go, or negotiate?</p>
-  <button onclick="openJamalAI()">Open Jamal AI</button>
-</div>
-
-<button class="jamal-float" onclick="openJamalAI()">🤖</button>
   
 <script src="script.js"></script>
 </body>
