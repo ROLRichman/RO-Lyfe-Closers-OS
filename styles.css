@@ -188,3 +188,8 @@ color:#38bdf8;
   from{opacity:0; transform:translateY(10px);}
   to{opacity:1; transform:translateY(0);}
 }
+
+.explainer{
+  border:1px solid rgba(34,197,94,.45);
+  background:linear-gradient(135deg,#0f172a,#052e1a);
+}
